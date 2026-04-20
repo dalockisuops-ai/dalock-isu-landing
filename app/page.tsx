@@ -7,39 +7,39 @@ const BRANCH_NAVER_URL = 'https://naver.me/xnrINaXG';
 
 const unitTypes = [
   {
-    id: 'small',
-    name: '스몰',
-    size: '0.25평',
-    description: '캐리어 2개 + 박스 5개',
-    detail: '계절 옷, 서류, 취미용품',
-  },
-  {
     id: 'cube',
     name: '큐브',
-    size: '0.5평',
-    description: '캐리어 3~4개 + 박스 여러 개',
-    detail: '여행 짐, 계절 옷 전부, 소형 가전',
-  },
-  {
-    id: 'medium',
-    name: '미디움',
-    size: '1평',
-    description: '원룸 짐 (가전 제외)',
-    detail: '이사·결혼·유학 준비할 때',
+    size: '0.9×0.9×1.0m',
+    description: '캐리어·리빙박스 보관',
+    detail: '계절 소품, 소형 잡화',
   },
   {
     id: 'slim',
     name: '슬림',
-    size: '1.5평',
-    description: '1.5룸 짐 + 가전·가구',
-    detail: '장기 보관이나 사업자 재고',
+    size: '0.9×0.5×2.0m',
+    description: '옷장처럼 사용 (행거)',
+    detail: '계절 옷, 정장, 코트',
+  },
+  {
+    id: 'small',
+    name: '스몰',
+    size: '0.9×0.9×2.0m',
+    description: '높이 있는 물건 보관',
+    detail: '골프용품, 계절 가전, 1~2인 짐',
+  },
+  {
+    id: 'medium',
+    name: '미디움',
+    size: '1.8×0.9×2.0m',
+    description: '부피 있는 소형 가구',
+    detail: '악기, 캠핑용품, 육아용품',
   },
   {
     id: 'large',
     name: '라지',
-    size: '2평 이상',
-    description: '투룸 이상 짐 전체',
-    detail: '넉넉한 공간이 필요할 때',
+    size: '2.7×0.9×2.0m',
+    description: '이삿짐·큰 짐 전체',
+    detail: '3~4인 가족 짐, 캠핑 장비',
   },
 ];
 
