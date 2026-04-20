@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 
 const DALOCK_APP_URL = 'https://dalock.kr/branch/isu-sadang';
 const BRANCH_NAVER_URL = 'https://naver.me/xnrINaXG';
+const PAGE_VERSION = 'v1';  // 페이지 버전 (A/B 테스팅용)
 
 const unitTypes = [
   {
@@ -50,19 +51,65 @@ const useCases = [
   { icon: '📦', title: '소규모 사업자', text: '재고·물품 보관 창고' },
 ];
 
+function getOrCreateVisitorId() {
+  if (typeof window === 'undefined') return '';
+  try {
+    let visitorId = localStorage.getItem('dalock_visitor_id');
+    if (!visitorId) {
+      visitorId = 'v-' + Date.now() + '-' + Math.random().toString(36).substring(2, 11);
+      localStorage.setItem('dalock_visitor_id', visitorId);
+      localStorage.setItem('dalock_first_visit', new Date().toISOString());
+    }
+    return visitorId;
+  } catch {
+    return '';
+  }
+}
+
+function getVisitorType() {
+  if (typeof window === 'undefined') return 'new';
+  try {
+    const firstVisit = localStorage.getItem('dalock_first_visit');
+    if (!firstVisit) return 'new';
+    const firstVisitDate = new Date(firstVisit);
+    const now = new Date();
+    const diffMinutes = (now.getTime() - firstVisitDate.getTime()) / 1000 / 60;
+    if (diffMinutes < 1) return 'new';
+    return 'returning';
+  } catch {
+    return 'new';
+  }
+}
+
 function HomeContent() {
   const [sessionId, setSessionId] = useState('');
+  const [visitorId, setVisitorId] = useState('');
+  const [visitorType, setVisitorType] = useState('new');
   const [utmSource, setUtmSource] = useState('');
 
   useEffect(() => {
-    const id = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-    setSessionId(id);
+    const sid = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+    setSessionId(sid);
+
+    const vid = getOrCreateVisitorId();
+    setVisitorId(vid);
+
+    const vType = getVisitorType();
+    setVisitorType(vType);
 
     const params = new URLSearchParams(window.location.search);
     const source = params.get('utm_source') || 'direct';
     setUtmSource(source);
 
-    trackEvent('page_view', { session_id: id, utm_source: source });
+    const baseData = {
+      session_id: sid,
+      visitor_id: vid,
+      visitor_type: vType,
+      utm_source: source,
+      page_version: PAGE_VERSION,
+    };
+
+    trackEvent('page_view', baseData);
 
     // Scroll depth tracking
     const tracked = { 25: false, 50: false, 75: false, 100: false };
@@ -73,7 +120,7 @@ function HomeContent() {
       [25, 50, 75, 100].forEach((threshold) => {
         if (scrollPercent >= threshold && !tracked[threshold as keyof typeof tracked]) {
           tracked[threshold as keyof typeof tracked] = true;
-          trackEvent('scroll_depth', { depth: threshold, session_id: id, utm_source: source });
+          trackEvent('scroll_depth', { ...baseData, depth: threshold });
         }
       });
     };
@@ -81,9 +128,9 @@ function HomeContent() {
 
     // Time on page
     const timeouts = [
-      setTimeout(() => trackEvent('time_10s', { session_id: id, utm_source: source }), 10000),
-      setTimeout(() => trackEvent('time_30s', { session_id: id, utm_source: source }), 30000),
-      setTimeout(() => trackEvent('time_60s', { session_id: id, utm_source: source }), 60000),
+      setTimeout(() => trackEvent('time_10s', baseData), 10000),
+      setTimeout(() => trackEvent('time_30s', baseData), 30000),
+      setTimeout(() => trackEvent('time_60s', baseData), 60000),
     ];
 
     return () => {
@@ -100,10 +147,13 @@ function HomeContent() {
         body: JSON.stringify({
           event_type: eventType,
           session_id: data.session_id || sessionId,
+          visitor_id: data.visitor_id || visitorId,
+          visitor_type: data.visitor_type || visitorType,
+          page_version: data.page_version || PAGE_VERSION,
+          utm_source: data.utm_source || utmSource,
           timestamp: new Date().toISOString(),
           user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
           referrer: typeof document !== 'undefined' ? document.referrer : '',
-          utm_source: data.utm_source || utmSource,
           ...data,
         }),
       });
@@ -113,23 +163,42 @@ function HomeContent() {
   };
 
   const handleUnitClick = (unitId: string, unitName: string) => {
-    trackEvent('unit_click', { unit_id: unitId, unit_name: unitName, utm_source: utmSource });
+    trackEvent('unit_click', {
+      unit_id: unitId,
+      unit_name: unitName,
+      utm_source: utmSource,
+      visitor_id: visitorId,
+      visitor_type: visitorType,
+    });
     setTimeout(() => {
       window.location.href = DALOCK_APP_URL;
     }, 100);
   };
 
   const handleReserveClick = () => {
-    trackEvent('reserve_click', { utm_source: utmSource });
+    trackEvent('reserve_click', {
+      utm_source: utmSource,
+      visitor_id: visitorId,
+      visitor_type: visitorType,
+    });
     window.location.href = DALOCK_APP_URL;
   };
 
   const handleMapClick = () => {
-    trackEvent('map_click', { utm_source: utmSource });
+    trackEvent('map_click', {
+      utm_source: utmSource,
+      visitor_id: visitorId,
+      visitor_type: visitorType,
+    });
     window.open(BRANCH_NAVER_URL, '_blank');
   };
 
   const scrollToUnits = () => {
+    trackEvent('hero_cta_click', {
+      utm_source: utmSource,
+      visitor_id: visitorId,
+      visitor_type: visitorType,
+    });
     document.getElementById('units-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -247,7 +316,7 @@ function HomeContent() {
                 className="w-full flex items-center justify-between bg-white border-2 border-gray-100 hover:border-primary active:border-primary rounded-xl p-4 transition group"
               >
                 <div className="flex items-center flex-1">
-                  <div className="bg-orange-50 text-primary font-bold text-xs rounded-lg px-2.5 py-1.5 mr-3 min-w-[60px] text-center">
+                  <div className="bg-orange-50 text-primary font-bold text-xs rounded-lg px-2.5 py-1.5 mr-3 min-w-[100px] text-center">
                     {unit.size}
                   </div>
                   <div className="text-left flex-1">
@@ -358,39 +427,6 @@ function HomeContent() {
           <p className="text-center text-sm text-gray-600 mt-3">
             무거운 짐도 편하게 · 무료 핸드카트 제공
           </p>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="px-6 py-10 bg-gray-50">
-        <div className="max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-5">이용자들이 말해요</h2>
-          <div className="space-y-3">
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center mb-2">
-                <div className="text-yellow-400 text-sm">★★★★★</div>
-              </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                "이사하는 동안 짐 보관할 곳이 필요했는데 이수역 가까워서 너무 편했어요. 24시간 출입 가능한 게 진짜 좋아요."
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center mb-2">
-                <div className="text-yellow-400 text-sm">★★★★★</div>
-              </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                "원룸 살면서 계절 옷이 너무 짐이었는데, 지금은 겨울옷 다 여기 넣어놨어요. 집이 진짜 넓어진 느낌."
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center mb-2">
-                <div className="text-yellow-400 text-sm">★★★★★</div>
-              </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                "앱으로 계약하고 출입까지 다 되니까 편해요. 관리자 안 만나도 되는 게 좋음."
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
