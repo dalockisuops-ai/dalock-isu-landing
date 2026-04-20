@@ -47,7 +47,7 @@ export default function Home() {
   const [sessionId, setSessionId] = useState('');
 
   useEffect(() => {
-    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const id = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
     setSessionId(id);
     trackEvent('page_view', { session_id: id });
   }, []);
@@ -90,7 +90,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white pb-24">
-      {/* Hero Section */}
       <section className="px-6 pt-12 pb-10 bg-gradient-to-b from-orange-50 to-white">
         <div className="max-w-md mx-auto animate-fade-in-up">
           <div className="inline-block px-3 py-1 bg-primary text-white text-xs font-semibold rounded-full mb-4">
@@ -100,8 +99,7 @@ export default function Home() {
             다락 이수사당점
           </h1>
           <p className="text-gray-600 text-base mb-6">
-            24시간 언제든 내 짐을 꺼낼 수 있는<br />
-            보안 셀프스토리지
+            24시간 언제든 내 짐을 꺼낼 수 있는 보안 셀프스토리지
           </p>
           <button
             onClick={handleMapClick}
@@ -113,14 +111,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Unit Selection */}
       <section className="px-6 py-10">
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-2">어떤 크기가 필요하세요?</h2>
           <p className="text-sm text-gray-500 mb-6">
             눌러서 바로 다락 앱에서 예약하세요
           </p>
-
           <div className="space-y-3">
             {unitTypes.map((unit) => (
               <button
@@ -149,7 +145,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features */}
       <section className="px-6 py-10 bg-gray-50">
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-6">다락 이수사당점만의 장점</h2>
@@ -194,7 +189,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Location */}
       <section className="px-6 py-10">
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-4">오시는 길</h2>
@@ -217,6 +211,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Floating CTA */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3 z-50">
-        <div className="max-w-md mx-auto
+        <div className="max-w-md mx-auto">
+          <button
+            onClick={handleReserveClick}
+            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl transition text-base shadow-lg"
+          >
+            📱 다락 앱에서 예약하기
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
