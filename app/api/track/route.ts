@@ -10,13 +10,18 @@ export async function POST(req: NextRequest) {
     const payload = {
       token: APPS_SCRIPT_TOKEN,
       request_type: 'LANDING_EVENT',
-      event_type: body.event_type,
-      session_id: body.session_id,
-      timestamp: body.timestamp,
-      user_agent: body.user_agent,
-      referrer: body.referrer,
+      event_type: body.event_type || '',
+      session_id: body.session_id || '',
+      visitor_id: body.visitor_id || '',
+      visitor_type: body.visitor_type || '',
+      page_version: body.page_version || '',
+      utm_source: body.utm_source || '',
+      timestamp: body.timestamp || new Date().toISOString(),
+      user_agent: body.user_agent || '',
+      referrer: body.referrer || '',
       unit_id: body.unit_id || '',
       unit_name: body.unit_name || '',
+      depth: body.depth || '',
     };
 
     if (APPS_SCRIPT_WEBHOOK_URL) {
