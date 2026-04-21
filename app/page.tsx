@@ -4,7 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 
 const DALOCK_APP_URL = 'https://dalock.kr/branch/isu-sadang';
 const BRANCH_NAVER_URL = 'https://naver.me/xnrINaXG';
-const PAGE_VERSION = 'v2';
+const PAGE_VERSION = 'v4';
+const BRANCH_NAME = '이수사당점';
+const MIN_RECENT_CONTRACTS_TO_SHOW = 10;
 
 const unitTypes = [
   {
@@ -91,6 +93,9 @@ function HomeContent() {
   const [visitorId, setVisitorId] = useState('');
   const [visitorType, setVisitorType] = useState('new');
   const [utmSource, setUtmSource] = useState('');
+  const [redirecting, setRedirecting] = useState(false);
+  const [redirectUnit, setRedirectUnit] = useState('');
+  const [recentContracts, setRecentContracts] = useState<number | null>(null);
 
   useEffect(() => {
     const sid = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
@@ -115,6 +120,16 @@ function HomeContent() {
     };
 
     trackEvent('page_view', baseData);
+
+    // Fetch recent contracts stats
+    fetch('/api/stats')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok && typeof data.recent_contracts === 'number') {
+          setRecentContracts(data.recent_contracts);
+        }
+      })
+      .catch(() => {});
 
     const tracked = { 25: false, 50: false, 75: false, 100: false };
     const onScroll = () => {
@@ -173,9 +188,11 @@ function HomeContent() {
       visitor_id: visitorId,
       visitor_type: visitorType,
     });
+    setRedirectUnit(unitName);
+    setRedirecting(true);
     setTimeout(() => {
       window.location.href = DALOCK_APP_URL;
-    }, 100);
+    }, 1200);
   };
 
   const handleReserveClick = () => {
@@ -184,7 +201,11 @@ function HomeContent() {
       visitor_id: visitorId,
       visitor_type: visitorType,
     });
-    window.location.href = DALOCK_APP_URL;
+    setRedirectUnit('');
+    setRedirecting(true);
+    setTimeout(() => {
+      window.location.href = DALOCK_APP_URL;
+    }, 1200);
   };
 
   const handleMapClick = () => {
@@ -205,8 +226,37 @@ function HomeContent() {
     document.getElementById('units-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const showSocialProof = recentContracts !== null && recentContracts >= MIN_RECENT_CONTRACTS_TO_SHOW;
+
+  if (redirecting) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center px-6">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-200 border-t-primary mb-6" />
+        <p className="text-lg font-bold text-center">
+          다락 {BRANCH_NAME}으로<br />
+          이동 중입니다...
+        </p>
+        {redirectUnit && (
+          <p className="text-sm text-gray-500 mt-2">
+            선택하신 사이즈: {redirectUnit}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-white pb-24">
+      {/* Breadcrumb */}
+      <div className="px-6 pt-3 pb-1 bg-white">
+        <div className="max-w-md mx-auto">
+          <p className="text-xs text-gray-400">
+            미니창고 다락 <span className="mx-1">›</span>{' '}
+            <span className="text-gray-700 font-semibold">이수사당점</span>
+          </p>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div
@@ -215,7 +265,7 @@ function HomeContent() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
 
-        <div className="relative px-6 pt-12 pb-14">
+        <div className="relative px-6 pt-10 pb-14">
           <div className="max-w-md mx-auto animate-fade-in-up">
             <div className="inline-flex items-center px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-full mb-5">
               <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse" />
@@ -223,19 +273,31 @@ function HomeContent() {
             </div>
             <h1 className="text-4xl font-black text-white mb-3 leading-tight">
               집이 좁으세요?<br />
-              다락에 맡기세요
+              다락 이수사당점에<br />
+              맡기세요
             </h1>
             <p className="text-white/90 text-base mb-6 leading-relaxed">
               24시간 언제든 내 짐을 꺼낼 수 있는<br />
               이수·사당 지역 최대 규모 셀프스토리지
             </p>
 
+            {/* Social proof badge */}
+            {showSocialProof && (
+              <div className="inline-flex items-center px-3 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-lg mb-6 animate-fade-in-up">
+                <span className="text-base mr-2">🔥</span>
+                <span className="text-white text-xs">
+                  최근 이수사당점에서{' '}
+                  <span className="font-bold">{recentContracts}명</span>이 새로 계약했어요
+                </span>
+              </div>
+            )}
+
             <div className="flex gap-2 mb-6">
               <button
                 onClick={scrollToUnits}
                 className="flex-1 bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-4 rounded-xl transition text-sm shadow-xl"
               >
-                공실 확인하기 →
+                이수사당점 공실 확인하기 →
               </button>
               <button
                 onClick={handleMapClick}
@@ -259,10 +321,33 @@ function HomeContent() {
         </div>
       </section>
 
+      {/* Branch Identity Bar */}
+      <section className="px-6 py-5 bg-orange-50 border-b border-orange-100">
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <div>
+            <div className="text-xs text-gray-500 mb-0.5">현재 보고 계신 지점</div>
+            <div className="font-black text-base text-gray-900">
+              다락 이수사당점
+            </div>
+            <div className="text-xs text-gray-600 mt-0.5">
+              서울 동작구 동작대로23길 7
+            </div>
+          </div>
+          <button
+            onClick={handleMapClick}
+            className="bg-white border border-orange-200 rounded-lg px-3 py-2 text-xs font-bold text-primary hover:bg-orange-100 transition"
+          >
+            📍 위치 확인
+          </button>
+        </div>
+      </section>
+
       {/* Use Cases */}
       <section className="px-6 py-10">
         <div className="max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-1">이럴 때 다락을 찾으세요</h2>
+          <h2 className="text-xl font-bold mb-1">
+            이럴 때 다락 이수사당점을 찾으세요
+          </h2>
           <p className="text-sm text-gray-500 mb-6">
             다락 이용자들이 가장 많이 선택하는 이유
           </p>
@@ -289,12 +374,12 @@ function HomeContent() {
           <div className="relative rounded-2xl overflow-hidden shadow-lg">
             <img
               src="/interior-wider.jpg"
-              alt="방금 우리집이 1평 더 넓어졌어요"
+              alt="다락 이수사당점 — 방금 우리집이 1평 더 넓어졌어요"
               className="w-full h-auto"
             />
           </div>
           <p className="text-center text-sm text-gray-600 mt-3">
-            방금 우리집이 1평 더 넓어졌어요
+            방금 우리집이 1평 더 넓어졌어요 · 다락 이수사당점
           </p>
         </div>
       </section>
@@ -304,7 +389,7 @@ function HomeContent() {
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-1">어떤 크기가 필요하세요?</h2>
           <p className="text-sm text-gray-500 mb-6">
-            이수·사당 지역 최대 규모 · 138개 유닛 · 5가지 사이즈
+            이수사당점 전체 138개 유닛 · 5가지 사이즈 모두 보유
           </p>
 
           <div className="space-y-3">
@@ -345,7 +430,7 @@ function HomeContent() {
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-4">
-            💡 다이나믹 프라이싱 · 실시간 가격은 앱에서 확인
+            💡 다이나믹 프라이싱 · 이수사당점 실시간 가격은 앱에서 확인
           </p>
         </div>
       </section>
@@ -356,20 +441,31 @@ function HomeContent() {
           <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
             <img
               src="/interior-units.jpg"
-              alt="다락 이수사당점 내부"
+              alt="다락 이수사당점 내부 유닛 전경"
               className="w-full h-auto"
             />
           </div>
 
-          <h2 className="text-xl font-bold mb-5">왜 다락 이수사당점인가요?</h2>
+          <h2 className="text-xl font-bold mb-5">
+            왜 다락 이수사당점인가요?
+          </h2>
 
           <div className="space-y-4">
             <div className="flex items-start">
+              <div className="text-2xl mr-3">📏</div>
+              <div>
+                <div className="font-bold text-base">이수·사당 지역 최대 규모</div>
+                <div className="text-sm text-gray-600 mt-0.5">
+                  본 지점 138개 유닛 · 5가지 사이즈 전부 보유
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start">
               <div className="text-2xl mr-3">🚇</div>
               <div>
-                <div className="font-bold text-base">이수역 도보 2분</div>
+                <div className="font-bold text-base">이수역 7번 출구 도보 2분</div>
                 <div className="text-sm text-gray-600 mt-0.5">
-                  이수·사당 지역 최대 규모 · 138개 유닛 보유
+                  동작대로23길 7 · 골목 안이 아닌 대로변 위치
                 </div>
               </div>
             </div>
@@ -428,12 +524,12 @@ function HomeContent() {
           <div className="relative rounded-2xl overflow-hidden shadow-lg">
             <img
               src="/interior-cart.jpg"
-              alt="무료 핸드카트 제공"
+              alt="다락 이수사당점 — 무료 핸드카트 제공"
               className="w-full h-auto"
             />
           </div>
           <p className="text-center text-sm text-gray-600 mt-3">
-            무거운 짐도 편하게 · 무료 핸드카트 제공
+            무거운 짐도 편하게 · 다락 이수사당점 무료 핸드카트
           </p>
         </div>
       </section>
@@ -441,10 +537,12 @@ function HomeContent() {
       {/* Location */}
       <section className="px-6 py-10 bg-gray-50">
         <div className="max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-4">오시는 길</h2>
+          <h2 className="text-xl font-bold mb-4">
+            다락 이수사당점 오시는 길
+          </h2>
           <div className="bg-white rounded-xl p-5">
             <div className="mb-3">
-              <div className="text-sm text-gray-500 mb-1">주소</div>
+              <div className="text-sm text-gray-500 mb-1">정확한 주소</div>
               <div className="font-bold">서울 동작구 동작대로23길 7</div>
             </div>
             <div className="mb-3">
@@ -459,7 +557,7 @@ function HomeContent() {
               onClick={handleMapClick}
               className="w-full bg-white border border-gray-200 rounded-lg py-3 font-bold text-sm hover:bg-gray-50 transition"
             >
-              📍 네이버 지도에서 보기
+              📍 네이버 지도에서 이수사당점 보기
             </button>
           </div>
         </div>
@@ -473,13 +571,14 @@ function HomeContent() {
             이사까지 갈 필요 없어요
           </h2>
           <p className="text-sm text-gray-600 mb-6">
-            월 1개만 써보세요. 공간이 달라져요.
+            다락 이수사당점, 월 1개만 써보세요<br />
+            공간이 달라집니다
           </p>
           <button
             onClick={handleReserveClick}
             className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl transition text-base shadow-xl"
           >
-            다락 앱에서 공실·가격 확인하기 →
+            이수사당점 공실·가격 확인하기 →
           </button>
         </div>
       </section>
@@ -491,7 +590,7 @@ function HomeContent() {
             onClick={handleReserveClick}
             className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg"
           >
-            📱 다락 앱에서 공실 확인하기
+            📱 다락 이수사당점 공실 확인하기
           </button>
         </div>
       </div>
