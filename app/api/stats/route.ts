@@ -4,7 +4,7 @@ const APPS_SCRIPT_WEBHOOK_URL = process.env.APPS_SCRIPT_WEBHOOK_URL || '';
 const APPS_SCRIPT_TOKEN = process.env.APPS_SCRIPT_TOKEN || '';
 
 let cachedStats: { recent_contracts: number; fetchedAt: number } | null = null;
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour cache
+const CACHE_DURATION_MS = 48 * 60 * 60 * 1000; // 48 hours cache
 
 export async function GET(req: NextRequest) {
   try {
