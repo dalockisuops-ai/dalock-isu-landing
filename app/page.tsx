@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 
 const DALOCK_APP_URL = 'https://dalock.kr/branch/isu-sadang';
 const BRANCH_NAVER_URL = 'https://naver.me/xnrINaXG';
-const PAGE_VERSION = 'v1';  // 페이지 버전 (A/B 테스팅용)
+const PAGE_VERSION = 'v2';
 
 const unitTypes = [
   {
@@ -13,6 +13,7 @@ const unitTypes = [
     size: '0.9×0.9×1.0m',
     description: '캐리어·리빙박스 보관',
     detail: '계절 소품, 소형 잡화',
+    image: '/unit-cube.png',
   },
   {
     id: 'slim',
@@ -20,6 +21,7 @@ const unitTypes = [
     size: '0.9×0.5×2.0m',
     description: '옷장처럼 사용 (행거)',
     detail: '계절 옷, 정장, 코트',
+    image: '/unit-slim.png',
   },
   {
     id: 'small',
@@ -27,6 +29,7 @@ const unitTypes = [
     size: '0.9×0.9×2.0m',
     description: '높이 있는 물건 보관',
     detail: '골프용품, 계절 가전, 1~2인 짐',
+    image: '/unit-small.png',
   },
   {
     id: 'medium',
@@ -34,6 +37,7 @@ const unitTypes = [
     size: '1.8×0.9×2.0m',
     description: '부피 있는 소형 가구',
     detail: '악기, 캠핑용품, 육아용품',
+    image: '/unit-medium.png',
   },
   {
     id: 'large',
@@ -41,14 +45,15 @@ const unitTypes = [
     size: '2.7×0.9×2.0m',
     description: '이삿짐·큰 짐 전체',
     detail: '3~4인 가족 짐, 캠핑 장비',
+    image: '/unit-large.png',
   },
 ];
 
 const useCases = [
   { icon: '📦', title: '이사 중', text: '새 집 들어가기 전 임시 보관' },
   { icon: '👗', title: '집이 좁아서', text: '계절 옷·비시즌 용품 보관' },
-  { icon: '💍', title: '결혼·유학 준비', text: '잠깐 짐 둘 곳이 필요할 때' },
-  { icon: '📦', title: '소규모 사업자', text: '재고·물품 보관 창고' },
+  { icon: '⛳', title: '취미 용품', text: '골프·캠핑·스키 장비 보관' },
+  { icon: '📦', title: '소규모 사업자', text: '온라인 셀러 재고 보관' },
 ];
 
 function getOrCreateVisitorId() {
@@ -111,7 +116,6 @@ function HomeContent() {
 
     trackEvent('page_view', baseData);
 
-    // Scroll depth tracking
     const tracked = { 25: false, 50: false, 75: false, 100: false };
     const onScroll = () => {
       const scrollPercent = Math.round(
@@ -126,7 +130,6 @@ function HomeContent() {
     };
     window.addEventListener('scroll', onScroll);
 
-    // Time on page
     const timeouts = [
       setTimeout(() => trackEvent('time_10s', baseData), 10000),
       setTimeout(() => trackEvent('time_30s', baseData), 30000),
@@ -204,7 +207,7 @@ function HomeContent() {
 
   return (
     <main className="min-h-screen bg-white pb-24">
-      {/* Hero Section with exterior image background */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -224,7 +227,7 @@ function HomeContent() {
             </h1>
             <p className="text-white/90 text-base mb-6 leading-relaxed">
               24시간 언제든 내 짐을 꺼낼 수 있는<br />
-              이수역 유일 셀프스토리지
+              이수·사당 지역 최대 규모 셀프스토리지
             </p>
 
             <div className="flex gap-2 mb-6">
@@ -245,27 +248,23 @@ function HomeContent() {
             {/* Trust signals */}
             <div className="flex items-center gap-4 text-white/80 text-xs">
               <div className="flex items-center">
-                <span className="text-white font-bold mr-1">60+</span> 현재 이용자
+                <span className="text-white font-bold mr-1">서울 최대</span> 셀프스토리지 브랜드
               </div>
               <div className="w-1 h-1 bg-white/40 rounded-full" />
               <div className="flex items-center">
                 <span className="text-white font-bold mr-1">전국 100+</span> 지점
-              </div>
-              <div className="w-1 h-1 bg-white/40 rounded-full" />
-              <div className="flex items-center">
-                <span className="text-white font-bold mr-1">24시간</span> 운영
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Use Cases — 이럴 때 추천 */}
+      {/* Use Cases */}
       <section className="px-6 py-10">
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-1">이럴 때 다락을 찾으세요</h2>
           <p className="text-sm text-gray-500 mb-6">
-            이미 60명이 다락 이수사당점을 이용 중이에요
+            다락 이용자들이 가장 많이 선택하는 이유
           </p>
           <div className="grid grid-cols-2 gap-3">
             {useCases.map((useCase, i) => (
@@ -305,32 +304,41 @@ function HomeContent() {
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-1">어떤 크기가 필요하세요?</h2>
           <p className="text-sm text-gray-500 mb-6">
-            클릭하면 다락 앱에서 공실·가격 확인 가능
+            이수·사당 지역 최대 규모 · 138개 유닛 · 5가지 사이즈
           </p>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {unitTypes.map((unit) => (
               <button
                 key={unit.id}
                 onClick={() => handleUnitClick(unit.id, unit.name)}
-                className="w-full flex items-center justify-between bg-white border-2 border-gray-100 hover:border-primary active:border-primary rounded-xl p-4 transition group"
+                className="w-full bg-white border-2 border-gray-100 hover:border-primary active:border-primary rounded-xl p-4 transition group"
               >
-                <div className="flex items-center flex-1">
-                  <div className="bg-orange-50 text-primary font-bold text-xs rounded-lg px-2.5 py-1.5 mr-3 min-w-[100px] text-center">
-                    {unit.size}
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 flex-shrink-0 bg-white rounded-lg p-1 flex items-center justify-center">
+                    <img
+                      src={unit.image}
+                      alt={unit.name}
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <div className="text-left flex-1">
-                    <div className="font-bold text-base">{unit.name}</div>
-                    <div className="text-xs text-gray-600 mt-0.5">
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="font-bold text-base">{unit.name}</div>
+                      <div className="bg-orange-50 text-primary font-bold text-[10px] rounded px-2 py-0.5">
+                        {unit.size}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 mb-0.5">
                       {unit.description}
                     </div>
-                    <div className="text-xs text-gray-400 mt-0.5">
+                    <div className="text-xs text-gray-400">
                       {unit.detail}
                     </div>
                   </div>
-                </div>
-                <div className="text-primary text-lg group-hover:translate-x-1 transition font-bold">
-                  →
+                  <div className="text-primary text-lg group-hover:translate-x-1 transition font-bold flex-shrink-0">
+                    →
+                  </div>
                 </div>
               </button>
             ))}
@@ -361,7 +369,7 @@ function HomeContent() {
               <div>
                 <div className="font-bold text-base">이수역 도보 2분</div>
                 <div className="text-sm text-gray-600 mt-0.5">
-                  이수역 반경 500m 내 유일한 셀프스토리지
+                  이수·사당 지역 최대 규모 · 138개 유닛 보유
                 </div>
               </div>
             </div>
@@ -414,7 +422,7 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Cart image + convenience */}
+      {/* Cart image */}
       <section className="px-6 pb-10">
         <div className="max-w-md mx-auto">
           <div className="relative rounded-2xl overflow-hidden shadow-lg">
@@ -431,10 +439,10 @@ function HomeContent() {
       </section>
 
       {/* Location */}
-      <section className="px-6 py-10">
+      <section className="px-6 py-10 bg-gray-50">
         <div className="max-w-md mx-auto">
           <h2 className="text-xl font-bold mb-4">오시는 길</h2>
-          <div className="bg-gray-50 rounded-xl p-5">
+          <div className="bg-white rounded-xl p-5">
             <div className="mb-3">
               <div className="text-sm text-gray-500 mb-1">주소</div>
               <div className="font-bold">서울 동작구 동작대로23길 7</div>
@@ -457,7 +465,7 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Final CTA Section */}
+      {/* Final CTA */}
       <section className="px-6 py-10 bg-gradient-to-b from-orange-50 to-white">
         <div className="max-w-md mx-auto text-center">
           <h2 className="text-2xl font-black mb-2">
