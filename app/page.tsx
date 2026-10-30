@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 
-const DALOCK_APP_URL = 'https://dalock.kr/branch/isu-sadang';
+const DALOCK_APP_URL = 'https://www.dalock.kr/service/location/%EC%9D%B4%EC%88%98%EC%82%AC%EB%8B%B9%EC%A0%90';
 const BRANCH_NAVER_URL = 'https://naver.me/xnrINaXG';
 const PAGE_VERSION = 'v4';
 const BRANCH_NAME = '이수사당점';
